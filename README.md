@@ -1,3 +1,3 @@
-# SMLM
+# miniSMLM
 
-The repository contains various statistical inference software and modules for simulating and analyzing super-resolution images
+Mini repository for simulating and analyzing localization microscopy images for super-resolution
