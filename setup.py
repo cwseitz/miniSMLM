@@ -6,5 +6,5 @@ setup(
     description='',
     author='Clayton Seitz',
     author_email='cwseitz@iu.edu',
-    packages=['SMLM'],
+    packages=['miniSMLM'],
 )
