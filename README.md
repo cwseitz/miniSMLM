@@ -1,3 +1,3 @@
 # miniSMLM
 
-Mini repository for simulating and analyzing localization microscopy images for super-resolution
+Minimal repository for analyzing localization microscopy images for super-resolution
