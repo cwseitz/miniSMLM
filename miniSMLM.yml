@@ -1,4 +1,4 @@
-name: seitz2023
+name: miniSMLM
 channels:
   - conda-forge
   - defaults
@@ -350,4 +350,4 @@ dependencies:
       - trackpy==0.5.0
       - wandb==0.15.8
       - wlcsim==0.1.11
-prefix: /home/cwseitz/anaconda3/envs/seitz2023
+prefix: /home/cwseitz/anaconda3/envs/miniSMLM
