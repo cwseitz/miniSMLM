@@ -17,3 +17,8 @@ pip install -e .
 ```  
 
 This will install miniSMLM in development mode
+
+## Tutorial
+
+Coming soon
+
