@@ -15,16 +15,15 @@ class IsoLogLikelihood:
         return self.func(theta,adu,self.cmos_params)
 
 class MLE2D_MCMC:
-    def __init__(self,theta0,adu,setup_params,theta_gt=None):
+    def __init__(self,theta0,adu,config,theta_gt=None):
        self.theta0 = theta0
        self.theta_gt = theta_gt
        self.adu = adu
-       self.setup_params = setup_params
-       self.cmos_params = [setup_params['eta'],setup_params['texp'],
-                            np.load(setup_params['gain'])['arr_0'],
-                            np.load(setup_params['offset'])['arr_0'],
-                            np.load(setup_params['var'])['arr_0']]
-                            
+       self.cmos_params = [config['eta'],config['texp'],
+                            np.load(config['gain'])['arr_0'],
+                            np.load(config['offset'])['arr_0'],
+                            np.load(config['var'])['arr_0']]
+
     def show(self,theta0,theta):
         fig,ax = plt.subplots(figsize=(4,4))
         ax.imshow(self.adu,cmap='gray')
@@ -32,7 +31,7 @@ class MLE2D_MCMC:
         ax.scatter(theta[0],theta[1],color='blue',label='fit')
         ax.legend()
         plt.tight_layout()
-        
+
     def plot(self,thetat,iters):
         fig,ax = plt.subplots(1,4,figsize=(10,2))
         ax[0].plot(thetat[:,0])
@@ -56,14 +55,14 @@ class MLE2D_MCMC:
         ax[3].set_xlabel('Iteration')
         ax[3].set_ylabel(r'$N_{0}$')
         plt.tight_layout()
-        
+
     def metropolis(self,theta0,iters=3000,tburn=300,prop_cov=0.05,beta=0.02,plot_mcmc=False):
         mean = np.zeros((4,)); cov = prop_cov*np.eye(4)
         loglike = IsoLogLikelihood(isologlike2d,self.cmos_params)
         sampler = Metropolis2D(mean,cov,loglike)
         samples = sampler.run(self.adu,theta0,iters=iters,beta=beta,tburn=tburn,diag=plot_mcmc)
         return samples
-        
+
     def optimize(self,max_iters=1000,mcmc_iters=1000,tburn=None,lr=None,prop_cov=0.05,beta=0.02,plot_fit=False,plot_mcmc=False,tol=1e-8):
         if plot_fit:
            thetat = []
@@ -91,16 +90,15 @@ class MLE2D_MCMC:
         return theta, loglike, samples
 
 class MLE2D:
-    def __init__(self,theta0,adu,setup_params,theta_gt=None):
+    def __init__(self,theta0,adu,config,theta_gt=None):
        self.theta0 = theta0
        self.theta_gt = theta_gt
        self.adu = adu
-       self.setup_params = setup_params
-       self.cmos_params = [setup_params['eta'],setup_params['texp'],
-                            np.load(setup_params['gain'])['arr_0'],
-                            np.load(setup_params['offset'])['arr_0'],
-                            np.load(setup_params['var'])['arr_0']]
-                            
+       self.cmos_params = [config['eta'],config['texp'],
+                            np.load(config['gain'])['arr_0'],
+                            np.load(config['offset'])['arr_0'],
+                            np.load(config['var'])['arr_0']]
+
     def show(self,theta0,theta):
         fig,ax = plt.subplots(figsize=(4,4))
         ax.imshow(self.adu,cmap='gray')
@@ -108,7 +106,7 @@ class MLE2D:
         ax.scatter(theta[0],theta[1],color='blue',label='fit')
         ax.legend()
         plt.tight_layout()
-        
+
     def plot(self,thetat,iters):
         fig,ax = plt.subplots(1,4,figsize=(10,2))
         ax[0].plot(thetat[:,0])
@@ -141,9 +139,9 @@ class MLE2D:
         except:
             errors = np.empty((4,))
             errors[:] = np.nan
-        
+
         return errors
-                
+
     def optimize(self,max_iters=1000,lr=None,plot_fit=False,tol=1e-8):
         if plot_fit:
            thetat = []
@@ -171,6 +169,3 @@ class MLE2D:
 
 
         return theta, loglike, converged
-
-        
-

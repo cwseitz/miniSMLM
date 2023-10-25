@@ -5,19 +5,19 @@ from ..psf.psf2d.psf2d import *
 class KDE:
     def __init__(self,spots):
         self.spots = spots
-    def get_kde(self,margin=100,pixel_size=108.3,kde_pixel_size=10.0,sigma=1.0):
+    def forward(self,margin=100,pixel_size=108.3,kde_pixel_size=10.0,sigma=1.0):
         patchw = int(round(3*sigma))
         a = (pixel_size/kde_pixel_size)
         theta = a*self.spots[['x_mle','y_mle']].values
-        
+
         theta[:,0] -= theta[:,0].min() #shift to zero
         theta[:,1] -= theta[:,1].min()
         x_range = theta[:,0].max() #total range
         y_range = theta[:,1].max()
-        
+
         nx = int(np.ceil(x_range)); ny = int(np.ceil(y_range))
         kde = np.zeros((2*margin+nx,2*margin+ny),dtype=np.float32)
-        
+
         ns,nd = theta.shape
         x = np.arange(0,2*patchw); y = np.arange(0,2*patchw)
         X,Y = np.meshgrid(x,y)
@@ -31,4 +31,3 @@ class KDE:
             kde_ymin = patchy+margin; kde_ymax = patchy+2*patchw+margin
             kde[kde_xmin:kde_xmax,kde_ymin:kde_ymax] += lam
         return kde
-

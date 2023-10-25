@@ -7,8 +7,8 @@ from skimage.util import img_as_float
 
 class LoGDetector:
     def __init__(self,X,min_sigma=1,max_sigma=3,num_sigma=5,threshold=0.5,
-                 overlap=0.5,show_scalebar=True,pixel_size=108.3,r_to_sigraw=3,
-                 plot_r=True,blob_marker='x',
+                 overlap=0.5,show_scalebar=True,pixel_size=108.3,
+                 blob_marker='x',patchw=3,
                  blob_markersize=10,blob_markercolor=(0,0,1,0.8)):
 
         self.X = X
@@ -17,10 +17,9 @@ class LoGDetector:
         self.num_sigma = num_sigma
         self.threshold = threshold
         self.overlap = overlap
+        self.patchw = patchw
         self.show_scalebar = show_scalebar
         self.pixel_size = pixel_size
-        self.r_to_sigraw = r_to_sigraw
-        self.plot_r = plot_r
         self.blob_marker = blob_marker
         self.blob_markersize = blob_markersize
         self.blob_markercolor = blob_markercolor
@@ -33,28 +32,21 @@ class LoGDetector:
                          num_sigma=self.num_sigma,
                          threshold=self.threshold,
                          overlap=self.overlap,
+                         exclude_border=5
                          )
 
-        columns = ['x', 'y', 'sigma', 'r', 'peak']
-        self.blobs_df = pd.DataFrame([], columns=columns)
-        self.blobs_df['x'] = blobs[:,0]
-        self.blobs_df['y'] = blobs[:,1]
-        self.blobs_df['sigma'] = blobs[:, 2]
-        self.blobs_df['r'] = blobs[:, 2] * self.r_to_sigraw
+        columns = ['x', 'y', 'peak']
+        self.spots = pd.DataFrame([], columns=columns)
+        self.spots['x'] = blobs[:,0]
+        self.spots['y'] = blobs[:,1]
 
-        self.blobs_df = self.blobs_df[(self.blobs_df['x'] - self.blobs_df['r'] > 0) &
-                      (self.blobs_df['x'] + self.blobs_df['r'] + 1 < self.X.shape[0]) &
-                      (self.blobs_df['y'] - self.blobs_df['r'] > 0) &
-                      (self.blobs_df['y'] + self.blobs_df['r'] + 1 < self.X.shape[1])]
+        for i in self.spots.index:
+            x = int(self.spots.at[i, 'x'])
+            y = int(self.spots.at[i, 'y'])
+            blob = self.X[x-self.patchw:x+self.patchw, y-self.patchw:y+self.patchw]
+            self.spots.at[i, 'peak'] = blob.max()
 
-        for i in self.blobs_df.index:
-            x = int(self.blobs_df.at[i, 'x'])
-            y = int(self.blobs_df.at[i, 'y'])
-            r = int(round(self.blobs_df.at[i, 'r']))
-            blob = self.X[x-r:x+r+1, y-r:y+r+1]
-            self.blobs_df.at[i, 'peak'] = blob.max()
-
-        return self.blobs_df
+        return self.spots
 
     def show(self,X=None,ax=None):
 
@@ -63,7 +55,7 @@ class LoGDetector:
        if X is None:
            X = self.X
        ax.imshow(X, cmap="gray", aspect='equal')
-       ax.scatter(self.blobs_df['y'],self.blobs_df['x'],color='red',marker='x')
+       ax.scatter(self.spots['y'],self.spots['x'],color='red',marker='x')
        if self.show_scalebar:
            font = {'family': 'arial', 'weight': 'bold','size': 16}
            scalebar = ScaleBar(self.pixel_size, 'nm', location = 'upper right',
