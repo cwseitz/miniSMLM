@@ -5,13 +5,12 @@ import matplotlib.pyplot as plt
 import json
 import time
 from pathlib import Path
-from SMLM.localize import LoGDetector
-from SMLM.utils import RLDeconvolver
-from SMLM.psf.psf2d import MLE2D, MLE2D_MCMC
+from miniSMLM.localize import LoGDetector
+from miniSMLM.psf.psf2d import MLE2D, MLE2D_MCMC
 from numpy.linalg import inv
 
 class PipelineMLE2D_MCMC:
-    """A collection of functions for maximum likelihood localization 
+    """A collection of functions for maximum likelihood localization
        and Metropolis-Hastings to estimate localization uncertainty"""
     def __init__(self,config,dataset):
         self.config = config
@@ -27,13 +26,12 @@ class PipelineMLE2D_MCMC:
         self.dump_config()
     def dump_config(self):
         with open(self.analpath+self.dataset.name+'/'+'config.json', 'w', encoding='utf-8') as f:
-            json.dump(self.config, f, ensure_ascii=False, indent=4)        
-    def localize(self,plot_spots=False,plot_fit=False,plot_mcmc=False,tmax=None,run_deconv=False):
+            json.dump(self.config, f, ensure_ascii=False, indent=4)
+    def localize(self,plot_spots=False,plot_fit=False,plot_mcmc=False,tmax=None):
         self.lr = self.config['lr']
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
         file = Path(path)
         nt,nx,ny = self.stack.shape
-        deconv = RLDeconvolver()
         if tmax is not None: nt = tmax
         threshold = self.config['thresh_log']
         spotst = []
@@ -41,8 +39,6 @@ class PipelineMLE2D_MCMC:
             for n in range(nt):
                 print(f'Det in frame {n}')
                 framed = self.stack[n]
-                if run_deconv:
-                    framed = deconv.deconvolve(framed,iters=5)
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect() #image coordinates
                 if plot_spots:
@@ -55,7 +51,7 @@ class PipelineMLE2D_MCMC:
         else:
             print('Spot files exist. Skipping')
         return spotst
-                
+
     def fit(self,frame,spots,plot_fit=False,plot_mcmc=False):
         config = self.config
         patchw = self.config['patchw']
@@ -68,7 +64,7 @@ class PipelineMLE2D_MCMC:
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.config['sigma'],self.config['N0']])
             opt = MLE2D_MCMC(theta0,adu,self.config) #cartesian coordinates with top-left origin
-            
+
             theta_mle, loglike, post_samples = opt.optimize(max_iters=config['max_iters'],
                                                             mcmc_iters=config['mcmc_iters'],
                                                             tburn=config['tburn'],
@@ -78,7 +74,7 @@ class PipelineMLE2D_MCMC:
                                                             plot_mcmc=plot_mcmc,
                                                             tol=config['tol'],
                                                             lr=self.lr)
-            
+
             dx = theta_mle[1] - patchw; dy = theta_mle[0] - patchw
             spots.at[i, 'x_mle'] = x0 + dx
             spots.at[i, 'y_mle'] = y0 + dy
@@ -91,11 +87,11 @@ class PipelineMLE2D_MCMC:
             spots.at[i, 'y_mcmc_std'] = np.std(post_samples[0,:])
             spots.at[i, 's_mcmc_std'] = np.std(post_samples[2,:])
             spots.at[i, 'N0_mcmc_std'] = np.std(post_samples[3,:])
-            
+
             end = time.time()
             elapsed = end - start
             print(f'Fit spot {i} in {elapsed} sec')
-            
+
         return spots
     def save(self,spotst):
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
@@ -117,13 +113,12 @@ class PipelineMLE2D:
         self.dump_config()
     def dump_config(self):
         with open(self.analpath+self.dataset.name+'/'+'config.json', 'w', encoding='utf-8') as f:
-            json.dump(self.config, f, ensure_ascii=False, indent=4)        
-    def localize(self,plot_spots=False,plot_fit=False,tmax=None,run_deconv=False):
+            json.dump(self.config, f, ensure_ascii=False, indent=4)
+    def localize(self,plot_spots=False,plot_fit=False,tmax=None):
         self.lr = self.config['lr']
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
         file = Path(path)
         nt,nx,ny = self.stack.shape
-        deconv = RLDeconvolver()
         if tmax is not None: nt = tmax
         threshold = self.config['thresh_log']
         spotst = []
@@ -131,9 +126,6 @@ class PipelineMLE2D:
             for n in range(nt):
                 print(f'Det in frame {n}')
                 framed = self.stack[n]
-                if run_deconv:
-                    print(f'Deconvolution frame {n}')
-                    framed = deconv.deconvolve(framed,iters=5)
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect() #image coordinates
                 if plot_spots:
@@ -146,7 +138,7 @@ class PipelineMLE2D:
         else:
             print('Spot files exist. Skipping')
         return spotst
-                
+
     def fit(self,frame,spots,plot_fit=False):
         config = self.config
         patchw = self.config['patchw']
@@ -159,7 +151,7 @@ class PipelineMLE2D:
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.config['sigma'],self.config['N0']])
             opt = MLE2D(theta0,adu,self.config) #cartesian coordinates with top-left origin
-            
+
             theta_mle, loglike, conv = opt.optimize(max_iters=config['max_iters'],
                                                     plot_fit=plot_fit,
                                                     tol=config['tol'],
@@ -172,9 +164,8 @@ class PipelineMLE2D:
             end = time.time()
             elapsed = end-start
             print(f'Fit spot {i} in {elapsed} sec')
-            
+
         return spots
     def save(self,spotst):
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
         spotst.to_csv(path)
-

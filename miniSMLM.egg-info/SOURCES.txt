@@ -1,7 +1,0 @@
-README.md
-setup.py
-miniSMLM/__init__.py
-miniSMLM.egg-info/PKG-INFO
-miniSMLM.egg-info/SOURCES.txt
-miniSMLM.egg-info/dependency_links.txt
-miniSMLM.egg-info/top_level.txt
