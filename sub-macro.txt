@@ -1,0 +1,2 @@
+run("Subtract Background...", "rolling=10 stack");
+run("Save");
