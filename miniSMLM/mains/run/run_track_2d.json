@@ -1,0 +1,9 @@
+{
+"search_range": 3,
+"memory": 5,
+"min_length": 10,
+"mpp": 0.1083,
+"fps": 10.0,
+"max_lagtime": 10,
+"analpath": "/home/cwseitz/Desktop/Demo/"
+}
