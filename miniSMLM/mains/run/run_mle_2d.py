@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 import json
 
-config_path = 'run_all_2d.json' #replace with path to your config
+config_path = 'run_mle_2d.json' #replace with path to your config
 with open(config_path, 'r') as f:
     config = json.load(f)
 
