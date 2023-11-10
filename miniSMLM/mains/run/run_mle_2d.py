@@ -21,4 +21,4 @@ for prefix in prefixes:
     spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
     make_animation(dataset.stack,spots)
     render = KDE(spots).forward(sigma=2.0)
-    imsave(config['analpath']+prefix+'/'+prefix+'-kde',render)
+    imsave(config['analpath']+prefix+'/'+prefix+'-kde.tif',render)
