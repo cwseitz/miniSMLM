@@ -6,7 +6,7 @@ import trackpy as tp
 import json
 
 class Tracker2D:
-    def __init__(self,config,prefix):
+    def __init__(self,config):
         self.config = config       
     def link(self,spots,search_range=3,memory=5,filter=False,min_length=10):  
         config = self.config         
