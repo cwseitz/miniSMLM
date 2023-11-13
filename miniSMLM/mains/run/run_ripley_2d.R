@@ -16,7 +16,7 @@ computeLFunction <- function(file) {
     filter(N0 >= 10, N0 <= 5000, x_mle > 0, y_mle > 0)
   filtered_data = filtered_data[!duplicated(filtered_data$x_mle),]
   
-  filtered_data <- filtered_data[sample(nrow(filtered_data), 10000), ] #sample N localizations to reduce compute load
+  #filtered_data <- filtered_data[sample(nrow(filtered_data), 10000), ] #sample N localizations to reduce compute load
   filtered_data$xclust <- filtered_data$y_mle * 108.3 #swap x and y for consistency with python code
   filtered_data$yclust <- filtered_data$x_mle * 108.3
   
@@ -49,7 +49,7 @@ computeLFunction <- function(file) {
 
 ##################################################
 
-dir <- '/home/cwseitz/Desktop/230823/Ctrl'
+dir <- '/home/cwseitz/Desktop/Demo/AMPKa'
 file_list <- list.files(path = dir, pattern = "\\.csv$", full.names = TRUE)
 
 # Initialize a list to store L-functions
