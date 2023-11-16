@@ -1,6 +1,6 @@
 # miniSMLM
 
-Minimal repository for analyzing localization microscopy images for super-resolution
+Minimal repository for analyzing localization microscopy images for super-resolution. Useful for teaching purposes and basic SR analysis
 
 ## Basic installation
 
