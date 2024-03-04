@@ -7,17 +7,17 @@ import pandas as pd
 import numpy as np
 import json
 
-config_path = 'run_mle_2d.json' #replace with path to your config
+config_path = 'run_mle_2d.json'
 with open(config_path, 'r') as f:
     config = json.load(f)
 
-prefixes = ['230909_Hela_Fixed-Sub']
+prefixes = []
 
 for prefix in prefixes:
     print("Processing " + prefix)
     dataset = SMLMDataset(config['datapath']+prefix,prefix)
     pipe = PipelineMLE2D(config,dataset)
-    pipe.localize(plot_spots=False,plot_fit=False,tmax=1000)
+    pipe.localize(plot_spots=False,plot_fit=False,tmax=100)
     spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
     make_animation(dataset.stack,spots)
     render = KDE(spots).forward(sigma=2.0)

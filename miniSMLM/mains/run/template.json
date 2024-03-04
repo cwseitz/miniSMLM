@@ -10,7 +10,5 @@
 "analpath": "",
 "thresh_log": 0.001,
 "patchw": 3,
-"lr": [1e-4,1e-4,0.0,100.0],
 "max_iters": 100,
-"tol": 1e-4
 }

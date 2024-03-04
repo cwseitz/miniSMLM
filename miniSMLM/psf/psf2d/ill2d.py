@@ -2,11 +2,11 @@ import numpy as np
 import warnings
 from .psf2d import *
 
-def isologlike2d(theta,adu,cmos_params):
+def isologlike2d(theta,adu,sigma,cmos_params):
     eta,texp,gain,offset,var = cmos_params
     nx,ny = offset.shape
-    x0,y0,sigma,N0 = theta
-    X,Y = np.meshgrid(np.arange(0,nx),np.arange(0,ny))
+    x0,y0,N0 = theta
+    X,Y = np.meshgrid(np.arange(0,nx),np.arange(0,ny),indexing='ij')
     lam = lamx(X,x0,sigma)*lamy(Y,y0,sigma)
     i0 = gain*eta*texp*N0
     muprm = i0*lam + var
