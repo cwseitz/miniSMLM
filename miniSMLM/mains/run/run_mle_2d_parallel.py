@@ -1,6 +1,6 @@
 import sys
-sys.path.append('miniSMLM-main/')
-from pipes import PipelineMLE2D, Localizer
+sys.path.append('miniSMLM-main/') 
+from pipes import Localizer
 from miniSMLM.utils import SMLMDataset
 from miniSMLM.utils import KDE, make_animation
 from skimage.io import imsave
@@ -25,10 +25,9 @@ def job(frame):
 
 for prefix in prefixes:
     print("Processing " + prefix)
-    dataset = SMLMDataset(config['datapath']+prefix,prefix)
-    pipe = PipelineMLE2D(config,dataset) # to be done: combine 28/29 two steps in ParallelLoc pipe
+    dataset = SMLMDataset(config['datapath']+prefix,prefix) 
 
-    frames = [Localizer(i, pipe) for i in range(tmax)] # need to call p.map from main, name == foo does not work in ParallelLoc
+    frames = [Localizer(i, config, dataset) for i in range(tmax)] # need to call p.map from main, name == foo does not work in ParallelLoc
     outputs = []
     if __name__ == '__main__': # maybe not necessary in Linux, will check
         with Pool() as p: 
@@ -36,9 +35,6 @@ for prefix in prefixes:
     
     print(outputs) # to be done: remove extra column labels from dataframes before appending, save as csv
 
-
-
-    # pipe.localize(plot_spots=False,plot_fit=False,tmax=tmax)
     # spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
     # make_animation(dataset.stack,spots)
     # render = KDE(spots).forward(sigma=2.0)
