@@ -1,0 +1,17 @@
+{
+"texp": 1.0,
+"eta": 0.8,
+"gain": "miniSMLM-main/miniSMLM/mains/run/cmos/gain.npz",
+"offset": "miniSMLM-main/miniSMLM/mains/run/cmos/offset.npz",
+"var": "miniSMLM-main/miniSMLM/mains/run/cmos/var.npz",
+"sigma": 0.92,
+"N0": 1000,
+"datapath": "RawData/",
+"analpath": "ProcessedData/",
+"thresh_log": 0.001,
+"patchw": 3,
+"lr": [1e-4,1e-4,0.0,100.0],
+"max_iters": 100,
+"tol": 1e-4
+}
+    
