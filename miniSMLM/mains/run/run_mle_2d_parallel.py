@@ -10,32 +10,32 @@ import numpy as np
 import json
 from multiprocessing import Pool
 
-config_path = 'miniSMLM-main/miniSMLM/mains/run/run_mle_2d_parallel.json' #replace with path to your config
-tmax = 10 # debug variable, will be removed
+config_path = 'miniSMLM-main/miniSMLM/mains/run/run_mle_2d_parallel.json' # replace with path to your config
+prefixes = ['LIV-U2OS-STORM-240102_live cell-LIV__1_MMStack_Default.ome'] # replace with tif file names without the .tif extension
 
 with open(config_path, 'r') as f:
     config = json.load(f)
-
-prefixes = ['LIV-U2OS-STORM-240102_live cell-LIV__1_MMStack_Default.ome']
-
-# helper function for using multiprocess module to dill instead of pickle
-def job(frame):
-    values = frame.localize()
-    return values
 
 for prefix in prefixes:
     print("Processing " + prefix)
     dataset = SMLMDataset(config['datapath']+prefix,prefix) 
 
-    frames = [Localizer(i, config, dataset) for i in range(tmax)] # need to call p.map from main, name == foo does not work in ParallelLoc
+    # localization call to helper function and saving of mapped MLEs
+    frames = range(min(config['tmax'], len(dataset.stack))) # would call len(dataset) but line 24 in utils.dataset.py assigns 4 values to the 3 sized stack, not sure why
     outputs = []
-    if __name__ == '__main__': # maybe not necessary in Linux, will check
-        with Pool() as p: 
+    if __name__ == '__main__': # failsafe CPU protection
+        with Pool(config['processes']) as p: 
             outputs = p.map(job, frames) 
-    
-    print(outputs) # to be done: remove extra column labels from dataframes before appending, save as csv
+    Localizer.save(outputs, prefix, config['analpath'])
 
-    # spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
-    # make_animation(dataset.stack,spots)
-    # render = KDE(spots).forward(sigma=2.0)
-    # imsave(config['analpath']+prefix+'/'+prefix+'-kde.tif',render)
+    # creation and saving of super res image
+    spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
+    make_animation(dataset.stack,spots)
+    render = KDE(spots).forward(sigma=2.0)
+    imsave(config['analpath']+prefix+'/'+prefix+'-kde.tif',render)
+
+# helper function for multiprocessing
+def job(n):
+    frame = Localizer(n, config, dataset)
+    spots = frame.localize()
+    return spots
