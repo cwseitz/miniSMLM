@@ -30,10 +30,6 @@ class Localizer:
     def dump_config(self):
         with open(self.analpath+self.dataset.name+'/'+'config.json', 'w', encoding='utf-8') as f:
             json.dump(self.config, f, ensure_ascii=False, indent=4)
-
-    def save(self,spotst):
-        path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
-        spotst.to_csv(path)
     
     def localize(self,plot_spots=False,plot_fit=False):
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
@@ -77,3 +73,16 @@ class Localizer:
             # elapsed = end-start
             # print(f'Fit spot {i} in {elapsed} sec')
         return spots
+    
+    def save(mle_stack,prefix,folder):
+        formatted = pd.DataFrame()
+        for i in range(len(mle_stack)):
+            formatted = pd.concat([formatted, mle_stack[i]]).drop_duplicates()
+        
+        print(formatted)
+
+        path = folder+prefix+'/'+prefix+'_spots.csv'
+        formatted.to_csv(path)
+
+        return formatted
+        
