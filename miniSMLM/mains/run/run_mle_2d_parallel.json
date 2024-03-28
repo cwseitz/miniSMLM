@@ -12,6 +12,8 @@
 "patchw": 3,
 "lr": [1e-4,1e-4,0.0,100.0],
 "max_iters": 100,
-"tol": 1e-4
+"tol": 1e-4,
+"tmax": 2000,
+"processes": 50
 }
     
