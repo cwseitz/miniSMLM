@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
-import tifffile
 import matplotlib.pyplot as plt
 import json
 import time
 from pathlib import Path
 from miniSMLM.localize import LoGDetector
-from miniSMLM.psf.psf2d import MLE2D
+from miniSMLM.psf.psf2d import MLE2D_BFGS
 
 
 class Localizer:
@@ -17,9 +16,7 @@ class Localizer:
         self.analpath = config['analpath']
         self.datapath = config['datapath']
         self.dataset = dataset
-        self.stack = dataset.stack
         self.lr = self.config['lr']
-        self.spotst = []
         self.cmos_params = [config['eta'],config['texp'],
                             np.load(config['gain'])['arr_0'],
                             np.load(config['offset'])['arr_0'],
@@ -34,11 +31,10 @@ class Localizer:
     def localize(self,plot_spots=False,plot_fit=False):
         path = self.analpath+self.dataset.name+'/'+self.dataset.name+'_spots.csv'
         file = Path(path)
-        nx,ny = self.stack[self.n].shape
         framespots = []
         if not file.exists():
             print(f'Det in frame {self.n+1}')
-            frame = self.stack[self.n]
+            frame = self.dataset.stack[self.n]
             log = LoGDetector(frame,threshold=self.config['thresh_log'])
             framespots = log.detect() #image coordinates
             if plot_spots:
@@ -59,11 +55,9 @@ class Localizer:
             adu = adu - self.cmos_params[3]
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.config['sigma'],self.config['N0']])
-            opt = MLE2D(theta0,adu,self.config) #cartesian coordinates with top-left origin
+            opt = MLE2D_BFGS(theta0,adu,self.config) #cartesian coordinates with top-left origin
             theta_mle, loglike, conv = opt.optimize(max_iters=self.config['max_iters'], #doesn't use BFGS
-                                                         plot_fit=plot_fit,
-                                                         tol=1e-4, #come back to this and un-hardcode it
-                                                         lr=self.lr)
+                                                         plot_fit=plot_fit)
             dx = theta_mle[1] - patchw; dy = theta_mle[0] - patchw
             spots.at[i, 'x_mle'] = x0 + dx #switch back to image coordinates
             spots.at[i, 'y_mle'] = y0 + dy
@@ -75,14 +69,16 @@ class Localizer:
         return spots
     
     def save(mle_stack,prefix,folder):
+        path = folder+prefix+'/'+prefix+'_spots.csv'
+        if Path(path).exists():
+            return 'Already created a CSV'
+        
         formatted = pd.DataFrame()
         for i in range(len(mle_stack)):
             formatted = pd.concat([formatted, mle_stack[i]]).drop_duplicates()
         
         print(formatted)
 
-        path = folder+prefix+'/'+prefix+'_spots.csv'
         formatted.to_csv(path)
-
         return formatted
         
