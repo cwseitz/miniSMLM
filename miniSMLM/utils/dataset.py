@@ -26,3 +26,30 @@ class SMLMDataset(Dataset):
     def __getitem__(self, idx):
         adu = self.stack[idx]
         return adu
+        
+    def defineThresh(self, sigma=0.92, numFrames = 100):
+            trial_thresh = float(input('Threshold to try: '))
+            check = trial_thresh
+            interval = int(len(self.stack)/numFrames)
+    
+            # run loop until user inputs that the threshold is satisfactory
+            while (check != '0'):
+                fig, axs = plt.subplots(nrows = 2, ncols = int(numFrames/2), figsize = (10,6))
+                trial_thresh = float(check)
+                logs = []
+                for i in range(numFrames):
+                    log = LoGDetector(self.stack[interval*i], threshold=trial_thresh)
+                    log.detect()
+    
+                    # plots the detected spots
+                    x_plt = int((2*i)/numFrames)
+                    y_plt = int(((2*i) % numFrames)/2)
+                    axs[x_plt, y_plt].set_title(f'Frame {interval*i}, {len(log.spots)} spots', )
+                    axs[x_plt, y_plt].imshow(self.stack[interval*i], cmap="gray", aspect='equal')
+                    axs[x_plt, y_plt].scatter(log.spots['y'], log.spots['x'], color = 'red', marker = 'x')
+    
+                plt.show()
+                
+                check = input("Enter 0 if acceptable. Enter a new threshold if not: ")
+            
+            return trial_thresh
