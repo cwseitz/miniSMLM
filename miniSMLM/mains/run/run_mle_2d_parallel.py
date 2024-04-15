@@ -1,53 +1,64 @@
 from pipes import Localizer
-from PIL import Image
 from miniSMLM.utils import SMLMDataset
-from miniSMLM.utils import KDE, make_animation
+from miniSMLM.utils import KDE, make_animation, Filter
 from skimage.io import imsave
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 import json
 from multiprocessing import Pool
+from PIL import Image, ImageEnhance
 
-
-config_path = 'miniSMLM-main/miniSMLM/mains/run/run_mle_2d_parallel.json' #replace with path to your config, also make sure to update paths in the config itself
-prefixes = ['LIV-U2OS-STORM-240102_live cell-LIV__1_MMStack_Default.ome'] #names of .tifs to be analyzed, omit the .tif extension
-show_image = True #true if you want to see each super-res image post-KDE
-auto_thresh = False #true if you want automated threshold calculation via bigfish (false will take from config)
-
-
+config_path = 'miniSMLM-main/miniSMLM/mains/run/run_mle_2d_parallel.json' 
+prefixes = [
+            '240404_Control__20_MMStack_Default.ome', 
+            ]
+show_image = True 
+auto_thresh = True 
 with open(config_path, 'r') as f:
     config = json.load(f)
 
-"""helper function for multiprocessing"""
+# thresholding framework
+if auto_thresh:
+    threshs = []
+    for prefix in prefixes:
+        dataset = SMLMDataset(config['datapath']+prefix,prefix)
+        threshs.append(dataset.defineThresh(numFrames = 10)) # numFrames should be even maybe
+    print(threshs)
+
+
+# helper function for multiprocessing'''
 def job(n):
     frame = Localizer(n, config, dataset)
     spots = frame.localize()
     return spots
 
+# main for all images
 for prefix in prefixes:
+    # set up imagee variables
     print("Processing " + prefix)
     dataset = SMLMDataset(config['datapath']+prefix,prefix) 
-
-    # # does not work properly yet; do not use
-    # if auto_thresh:
-    #     config['thresh_log'] = dataset.calc_thresh(sigma=0.92)
+    config['thresh_log'] = threshs[0] 
+    threshs.pop(0) 
     
-    """localization call to helper function and saving of mapped MLEs"""
-    frames = range(min(config['tmax'], len(dataset.stack))) # would call len(dataset) but line 24 in utils.dataset.py assigns 4 values to the 3 sized stack, not sure why
+    # call to helper function for parallelization
+    frames = range(min(config['tmax'], len(dataset.stack))) 
     outputs = []
-    if __name__ == '__main__': # failsafe CPU protection
+    if __name__ == '__main__': 
         with Pool(config['processes']) as p: 
             outputs = p.map(job, frames) 
     Localizer.save(outputs, prefix, config['analpath'])
 
-    """creation and saving of super res image"""
+
+    # filter spots and resave localizations for cluster analysis
     spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
+    spots = Filter(spots).filter()
+    spots.to_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv', index = False)
+    
+    # create and save image
     make_animation(dataset.stack,spots)
-    render = KDE(spots).weighted_forward(sigma=2.0)
-    print("KDE complete ")
+    render = KDE(spots).forward(sigma=2.0)
+    print(f"KDE complete on {prefix}")
     imsave(config['analpath']+prefix+'/'+prefix+'-kde.tif',render)
     if show_image:
         plt.imshow(render, cmap = 'gray')
         plt.show()
-
