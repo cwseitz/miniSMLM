@@ -1,1 +1,1 @@
-from .ring import *
+from .generators import *

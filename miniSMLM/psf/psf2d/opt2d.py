@@ -14,10 +14,8 @@ class MLE2D_BFGS:
        self.theta_gt = theta_gt
        self.adu = adu
        self.sigma = config['sigma']
-       self.cmos_params = [config['eta'],config['texp'],
-                            np.load(config['gain'])['arr_0'],
-                            np.load(config['offset'])['arr_0'],
-                            np.load(config['var'])['arr_0']]
+       self.cam_params = [config['eta'],config['texp'],config['gain'],
+                           config['offset'],config['var']]
 
     def show(self,theta0,theta):
         fig,ax = plt.subplots(figsize=(4,4))
@@ -59,15 +57,15 @@ class MLE2D_BFGS:
         thetat = []; loglikes = []
 
         def objective_function(theta):
-            loglike_value = isologlike2d(theta,self.adu,self.sigma,self.cmos_params)
+            loglike_value = isologlike2d(theta,self.adu,self.sigma,self.cam_params)
             loglikes.append(loglike_value)
             return loglike_value
 
         def jacobian_function(theta):
-            jac = jaciso2d(theta,self.adu,self.sigma,self.cmos_params)
+            jac = jaciso2d(theta,self.adu,self.sigma,self.cam_params)
             return jac
 
-        original_stderr = sys.stderr #silence 'line search' convergence warning
+        original_stderr = sys.stderr
         sys.stderr = open(os.devnull, 'w')
         result = minimize(
             objective_function,

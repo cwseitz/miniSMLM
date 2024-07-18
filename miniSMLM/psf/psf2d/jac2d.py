@@ -2,14 +2,14 @@ import numpy as np
 from .psf2d import *
 from .ill2d_auto import *
 
-def jaciso2d(theta,adu,sigma,cmos_params):
-    lx, ly = adu.shape
+def jaciso2d(theta,adu,sigma,cam_params):
+    nx,ny = adu.shape
     ntheta = len(theta)
     x0,y0,N0 = theta
-    X,Y = np.meshgrid(np.arange(0,lx),np.arange(0,ly),indexing='ij')
-    J1 = jac1(X,Y,theta,sigma,cmos_params)
-    J1 = J1.reshape((ntheta,lx**2))
-    J2 = jac2(adu,X,Y,theta,sigma,cmos_params)
+    X,Y = np.meshgrid(np.arange(0,nx),np.arange(0,ny),indexing='ij')
+    J1 = jac1(X,Y,theta,sigma,cam_params)
+    J1 = J1.reshape((ntheta,nx**2))
+    J2 = jac2(adu,X,Y,theta,sigma,cam_params)
     J = J1 @ J2
     return J
     

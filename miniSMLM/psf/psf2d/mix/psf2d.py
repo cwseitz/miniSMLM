@@ -33,22 +33,21 @@ def dudsy(X,Y,x0,y0,sigma_x,sigma_y):
 def duds0(X,Y,x0,y0,sigma):
     return dudsx(X,Y,x0,y0,sigma,sigma)+dudsy(X,Y,x0,y0,sigma,sigma)
     
-def jac1(X,Y,theta,sigma,cam_params):
-    x0,y0,N0 = theta
+def jac1(X,Y,theta,sigma,N0,cam_params):
+    x0,y0 = theta
     eta,texp,gain,offset,var = cam_params
     i0 = N0*eta*gain*texp
     j_x0 = i0*dudx0(X,Y,x0,y0,sigma)
     j_y0 = i0*dudy0(X,Y,x0,y0,sigma)
-    j_n0 = (i0/N0)*dudn0(X,Y,x0,y0,sigma)
-    jac = np.array([j_x0, j_y0, j_n0], dtype=np.float64)
+    jac = np.array([j_x0,j_y0], dtype=np.float64)
     return jac
     
-def jac2(adu,X,Y,theta,sigma,cam_params):
-    x0,y0,N0 = theta
+def jac2(X,Y,theta,sigma,N0,cam_params):
+    x0,y0 = theta
     eta,texp,gain,offset,var = cam_params
     i0 = N0*eta*gain*texp
     lam = lamx(X,x0,sigma)*lamy(Y,y0,sigma)
     mu = i0*lam + var
-    jac2 = 1 - adu/(mu+1e-8)
+    jac2 = 1 - adu/mu
     return jac2.flatten()
 
