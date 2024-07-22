@@ -3,3 +3,4 @@ from .jac2mix import *
 from .jac2d import *
 from .mll2d import *
 from .opt2d import *
+from .crb2d import *

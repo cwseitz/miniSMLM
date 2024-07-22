@@ -10,16 +10,17 @@ import pandas as pd
 from ..psf2d import *
 from .mll2d import *
 from .jac2d import *
-from sklearn.mixture import BayesianGaussianMixture
 from multiprocessing import Pool
 from scipy.optimize import minimize
+from sklearn.cluster import KMeans
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 """
 Optimizers for multi-emitter fitting
 """
 
-class MixMCMCParallel:
-    def __init__(self, theta0,adu,config):
+class MixMCMC:
+    def __init__(self,theta0,adu,config):
         self.theta0 = theta0
         self.adu = adu
         self.sigma = config['sigma']
@@ -62,100 +63,30 @@ class MixMCMCParallel:
         if plot_fit:
             self.plot_fit(samples)
         return samples
-
-    def plot_fit(self, samples):
-        fig = corner.corner(samples, labels=["param" + str(i) for i in range(samples.shape[1])])
-        fig.show()
-        plt.show()
-
-    def find_modes_dpgmm(self, samples, max_components=10):
-        dpgmm = BayesianGaussianMixture(
-            n_components=max_components,
-            covariance_type='full',
-            weight_concentration_prior_type='dirichlet_process',
-            weight_concentration_prior=1e-3,
-            random_state=0
-        )
-        samples += np.random.normal(0, 0.01, size=samples.shape)
-        dpgmm.fit(samples)
-        modes = dpgmm.means_
-        labels = dpgmm.predict(samples)
-        #self.plot_dpgmm_fit(samples, dpgmm, labels)
-        return modes
-
-    def plot_dpgmm_fit(self, samples, dpgmm, labels):
-        df = pd.DataFrame(samples, columns=[r'$x_0$', r'$y_0$'])
-        df['cluster'] = labels
-        sns.set_theme(font_scale=1.5, style='ticks')
-        sns.pairplot(df, hue='cluster', diag_kind='kde', palette='tab10')
-        plt.show()
-
-
-class MixMCMC:
-    def __init__(self,theta0,adu,config):
-        self.theta0 = theta0
-        self.adu = adu
-        self.sigma = config['sigma']
-        self.N0 = config['N0']
-        self.cam_params = [config['eta'],config['texp'],config['gain'],
-                           config['offset'],config['var']]
-
-    def log_prior(self, theta):
-        if np.all(theta >= 2.0) and np.all(theta <= 8.0):
-            return 0.0
-        return -np.inf
-
-    def log_likelihood(self,theta):
-        try:
-            log_like = -1*mixloglike(theta,self.adu,self.sigma,self.N0,self.cam_params)
-            if np.isnan(log_like) or np.isinf(log_like):
-                return -np.inf
-            return log_like
-        except OverflowError:
-            return -np.inf
-
-    def log_probability(self, theta):
-        lp = self.log_prior(theta)
-        if not np.isfinite(lp):
-            return -np.inf
-        ll = self.log_likelihood(theta)
-        if not np.isfinite(ll):
-            return -np.inf
-        return lp + ll
-    
-    def run_mcmc(self,nwalkers=100,nsteps=1000,plot_fit=False):
-        ndim = self.theta0.size
-        pos = self.theta0 + 1e-3*np.random.randn(nwalkers,ndim)
-        sampler = emcee.EnsembleSampler(nwalkers,ndim,self.log_probability)
-        sampler.run_mcmc(pos,nsteps,progress=True)
-        samples = sampler.get_chain(discard=100,thin=5,flat=True)
-        if plot_fit:
-            self.plot_fit(samples)
-        return samples
-    
-    def plot_fit(self,samples):
-        fig = corner.corner(samples, labels=["param" + str(i) for i in range(samples.shape[1])])
-        fig.show()
-        plt.show()
         
-    def find_modes_dpgmm(self, samples, max_components=10):
-        dpgmm = BayesianGaussianMixture(n_components=max_components, covariance_type='full', weight_concentration_prior_type='dirichlet_process', weight_concentration_prior=1e-3, random_state=0)
-        samples += np.random.normal(0,0.01,size=samples.shape)
-        dpgmm.fit(samples)
-        modes = dpgmm.means_
-        labels = dpgmm.predict(samples)
+    def cluster_samples(self,samples,N):
+        kmeans=KMeans(n_clusters=N,n_init='auto').fit(samples)
+        theta_est = kmeans.cluster_centers_
+        return theta_est
 
-        print("Modes found by DPGMM:")
-        print(modes)
-
-        self.plot_dpgmm_fit(samples, dpgmm, labels)
-        return modes
-
-    def plot_dpgmm_fit(self, samples, dpgmm, labels):
-        df = pd.DataFrame(samples, columns=[r'$x_0$',r'$y_0$'])
-        df['cluster'] = labels
-        sns.set_theme(font_scale=1.5,style='ticks')
-        sns.pairplot(df,hue='cluster',diag_kind='kde', palette='tab10')
+    def plot_fit(self,samples,adu,theta_true,N):
+        kmeans=KMeans(n_clusters=N).fit(samples)
+        labels=kmeans.labels_
+        fig,ax=plt.subplots(figsize=(3,3))
+        ax.invert_yaxis()
+        ax.scatter(samples[:,1],samples[:,0],c=labels,marker='x',s=1)
+        ax.scatter(theta_true[1,:],theta_true[0,:],
+                   marker='x',color='red',s=20)
+        ax.set_xlabel(r'$x_0$')
+        ax.set_ylabel(r'$y_0$')
+        ax.spines[['right','top']].set_visible(False)
+        ax_inset = inset_axes(ax,width="40%",
+                              height="40%",loc='upper right')
+        ax_inset.imshow(adu,cmap='gray')
+        ax_inset.set_xticks([])
+        ax_inset.set_yticks([])
+        plt.tight_layout()
+        plt.savefig('/home/cwseitz/Desktop/Samples.png',dpi=300)
         plt.show()
 
 
