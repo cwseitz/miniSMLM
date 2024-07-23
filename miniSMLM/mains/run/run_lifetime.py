@@ -17,6 +17,6 @@ with open('run_lifetime.json', 'r') as f:
 for prefix in prefixes:
     stack = imread(config['path'] + prefix + '.tif')
     pipe = TwoStatePoissonHMM(stack)
-    pipe.forward(show_spots=False,show_hmm=False,show_hist=True,threshold=0.001)
+    pipe.forward(show_spots=False,show_hmm=True,show_hist=True,threshold=0.001)
 
 

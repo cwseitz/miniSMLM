@@ -37,6 +37,7 @@ class TwoStatePoissonHMM:
         ax[0].set_xlabel('Time (sec)')
         ax[0].set_ylabel('ADU')
         ax[0].set_xlim([0,3.0])
+        ax[0].spines[['right', 'top']].set_visible(False)
         unique, counts = np.unique(states, return_counts=True)
         counts = counts/len(states)
         rates = model.lambdas_.flatten()
@@ -63,12 +64,17 @@ class TwoStatePoissonHMM:
         opt1, cov1 = curve_fit(func_doublexp,bins1[:-1],vals1)
         ax.set_xlabel('Lifetime (sec)')
         ax.set_ylabel('Probability')
-        ax.scatter(bins0[:-1],vals0,color='red',s=3,label='OFF')
-        ax.plot(bins0[:-1],func_doublexp(bins0[:-1],*opt0),color='red')
-        ax.scatter(bins1[:-1],vals1,color='blue',s=3,label='ON')
-        ax.plot(bins1[:-1],func_doublexp(bins1[:-1],*opt1),color='blue')
+        ax.scatter(bins0[:-1],vals0,facecolors='white',
+                   edgecolors='red',s=30,label='OFF')
+        ax.plot(bins0[:-1],func_doublexp(bins0[:-1],*opt0),
+                color='red',linestyle='--')
+        ax.scatter(bins1[:-1],vals1,edgecolors='blue',
+                   facecolors='white',s=30,label='ON')
+        ax.plot(bins1[:-1],func_doublexp(bins1[:-1],*opt1),
+                color='blue',linestyle='--')
         ax.set_xscale('log'); ax.set_yscale('log')
-        ax.legend()
+        ax.spines[['right', 'top']].set_visible(False)
+        ax.legend(frameon=False)
         plt.tight_layout()
         plt.show()
         
