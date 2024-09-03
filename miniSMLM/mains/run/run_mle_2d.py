@@ -17,7 +17,7 @@ for prefix in prefixes:
     print("Processing " + prefix)
     dataset = SMLMDataset(config['datapath']+prefix,prefix)
     pipe = PipelineMLE2D(config,dataset)
-    pipe.localize(plot_spots=False,plot_fit=False,tmax=100)
+    pipe.localize(plot_spots=False,plot_fit=False,tmax=1000)
     spots = pd.read_csv(config['analpath'] + prefix + '/' + prefix + '_spots.csv')
     make_animation(dataset.stack,spots)
     render = KDE(spots).forward(sigma=2.0)

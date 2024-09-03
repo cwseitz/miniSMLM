@@ -74,7 +74,7 @@ class MixMCMC:
         labels=kmeans.labels_
         fig,ax=plt.subplots(figsize=(3,3))
         ax.invert_yaxis()
-        ax.scatter(samples[:,1],samples[:,0],c=labels,marker='x',s=1)
+        ax.scatter(samples[:,1],samples[:,0],c='gray',marker='x',s=1)
         ax.scatter(theta_true[1,:],theta_true[0,:],
                    marker='x',color='red',s=20)
         ax.set_xlabel(r'$x_0$')

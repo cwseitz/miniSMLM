@@ -18,10 +18,8 @@ class PipelineMLE2D:
         self.dataset = dataset
         self.stack = dataset.stack
         Path(self.analpath+self.dataset.name).mkdir(parents=True, exist_ok=True)
-        self.cmos_params = [config['eta'],config['texp'],
-                            np.load(config['gain'])['arr_0'],
-                            np.load(config['offset'])['arr_0'],
-                            np.load(config['var'])['arr_0']]
+        self.cmos_params = [config['eta'],config['texp'],config['gain'],
+                            config['offset'],config['var']]
         self.dump_config()
     def dump_config(self):
         with open(self.analpath+self.dataset.name+'/'+'config.json', 'w', encoding='utf-8') as f:

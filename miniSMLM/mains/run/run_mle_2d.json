@@ -1,9 +1,9 @@
 {
 "texp": 1.0,
 "eta": 0.8,
-"gain": "cmos/gain.npz",
-"offset": "cmos/offset.npz",
-"var": "cmos/var.npz",
+"gain": 1.0,
+"offset": 100.0,
+"var": 5.0,
 "sigma": 0.92,
 "N0": 1000,
 "datapath": "",
