@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib_scalebar.scalebar import ScaleBar
 from skimage.feature import blob_log
 from skimage.util import img_as_float
 
@@ -56,10 +55,10 @@ class LoGDetector:
            X = self.X
        ax.imshow(X, cmap="gray", aspect='equal')
        ax.scatter(self.spots['y'],self.spots['x'],color='red',marker='x')
-       if self.show_scalebar:
-           font = {'family': 'arial', 'weight': 'bold','size': 16}
-           scalebar = ScaleBar(self.pixel_size, 'nm', location = 'upper right',
-               font_properties=font, box_color = 'black', color='white')
-           scalebar.length_fraction = .3
-           scalebar.height_fraction = .025
-           ax.add_artist(scalebar)
+    #    if self.show_scalebar:
+    #        font = {'family': 'arial', 'weight': 'bold','size': 16}
+    #        scalebar = ScaleBar(self.pixel_size, 'nm', location = 'upper right',
+    #            font_properties=font, box_color = 'black', color='white')
+    #        scalebar.length_fraction = .3
+    #        scalebar.height_fraction = .025
+    #        ax.add_artist(scalebar)
