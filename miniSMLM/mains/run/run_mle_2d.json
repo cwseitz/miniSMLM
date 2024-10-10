@@ -8,7 +8,7 @@
 "N0": 1000,
 "datapath": "",
 "analpath": "",
-"thresh_log": 0.0008,
+"thresh_log": 0.01,
 "patchw": 3,
 "max_iters": 100
 }

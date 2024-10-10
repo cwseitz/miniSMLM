@@ -38,6 +38,7 @@ class PipelineMLE2D:
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect() #image coordinates
                 if plot_spots:
+                    print(spots)
                     log.show(); plt.show()
                 spots = self.fit(framed,spots,plot_fit=plot_fit)
                 spots = spots.assign(frame=n)
@@ -53,8 +54,8 @@ class PipelineMLE2D:
         patchw = self.config['patchw']
         for i in spots.index:
             start = time.time()
-            x0 = int(spots.at[i,'x'])
-            y0 = int(spots.at[i,'y'])
+            x0 = int(spots.at[i,'x']) #image coordinates (row)
+            y0 = int(spots.at[i,'y']) #image coordinates (column)
             adu = frame[x0-patchw:x0+patchw+1,y0-patchw:y0+patchw+1]
             adu = adu - self.cmos_params[3]
             adu = np.clip(adu,0,None)
@@ -62,8 +63,9 @@ class PipelineMLE2D:
             opt = MLE2D_BFGS(theta0,adu,self.config) #cartesian coordinates with top-left origin
             theta_mle, loglike, conv, err = opt.optimize(max_iters=config['max_iters'],
                                                          plot_fit=plot_fit)
-            dx = theta_mle[1] - patchw; dy = theta_mle[0] - patchw
-            spots.at[i, 'x_mle'] = x0 + dx #switch back to image coordinates
+            #theta_mle is in subpixel image coordinates (row,column) within the patch
+            dx = theta_mle[0] - patchw; dy = theta_mle[1] - patchw
+            spots.at[i, 'x_mle'] = x0 + dx
             spots.at[i, 'y_mle'] = y0 + dy
             spots.at[i, 'N0'] = theta_mle[2]
             spots.at[i, 'conv'] = conv
