@@ -37,8 +37,8 @@ class LoGDetector:
 
         columns = ['x', 'y', 'peak']
         self.spots = pd.DataFrame([], columns=columns)
-        self.spots['x'] = blobs[:,0]
-        self.spots['y'] = blobs[:,1]
+        self.spots['x'] = blobs[:,0] #image coordinates (row)
+        self.spots['y'] = blobs[:,1] #image coordinates (column)
 
         for i in self.spots.index:
             x = int(self.spots.at[i, 'x'])

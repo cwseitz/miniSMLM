@@ -18,4 +18,10 @@ pip install -e .
 
 This will install miniSMLM in development mode
 
+## The coordinate system
+
+All coordinates throughout the code (blob detection and fitting) are in *image* coordinates where x represents the row and y represents the column, measured from the top left of the image. The blob_log() function in scikit-image uses image coordinates by default. Therefore, in isologlike2d() we use 'ij' indexing in numpy's meshgrid to preserve image coordinates.
+
+When using matplotlib's scatter() to show detected points, plotting code must transpose coordinates and invert the y axis. 
+
 

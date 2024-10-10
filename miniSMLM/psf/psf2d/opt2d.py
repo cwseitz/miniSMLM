@@ -23,7 +23,7 @@ class MLE2D_BFGS:
         ax.scatter(theta[1],theta[0],color='blue',label='fit')
         if self.theta_gt:
             ax.scatter(self.theta_gt[1],self.theta_gt[0],color='green',label='true')
-        ax.invert_yaxis()
+        ax.invert_yaxis() #put the origin at the top left
         ax.imshow(self.adu,cmap='gray')
         ax.legend()
         plt.tight_layout()

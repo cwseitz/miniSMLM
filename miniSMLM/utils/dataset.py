@@ -1,11 +1,9 @@
 import numpy as np
 import tifffile
-import torch
 from skimage.io import imread
-from torch.utils.data import Dataset
 from glob import glob
 
-class SMLMDataset(Dataset):
+class SMLMDataset:
     def __init__(self,path,name):
         self.stack = tifffile.imread(path+'.tif')
         self.name = name

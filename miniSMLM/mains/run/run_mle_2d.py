@@ -12,7 +12,6 @@ with open(config_path, 'r') as f:
     config = json.load(f)
 
 prefixes = []
-]
 
 for prefix in prefixes:
     print("Processing " + prefix)
