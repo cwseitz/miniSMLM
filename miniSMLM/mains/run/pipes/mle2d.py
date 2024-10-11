@@ -25,7 +25,7 @@ class PipelineMLE2D:
         with open(self.analpath + self.dataset.name + '/' + 'config.json', 'w', encoding='utf-8') as f:
             json.dump(self.config, f, ensure_ascii=False, indent=4)
 
-    def localize(self, plot_spots=False, plot_fit=False, tmax=None):
+    def localize(self, plot_spots=False, plot_fit=False, tmax=None, max_workers=4):
         path = self.analpath + self.dataset.name + '/' + self.dataset.name + '_spots.csv'
         file = Path(path)
         nt, nx, ny = self.stack.shape
@@ -34,13 +34,12 @@ class PipelineMLE2D:
         threshold = self.config['thresh_log']
         spotst = []
         if not file.exists():
-            # Parallelize over frames
-            frames = [(n, self.stack[n]) for n in range(nt)]
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                # Map the process_frame function over the frames
-                results = list(executor.map(self.process_frame, frames,
-                                            [threshold]*nt, [plot_spots]*nt, [plot_fit]*nt))
+            # Parallelize over frames with a limit on max_workers
+            frames = [(n, self.stack[n], threshold, plot_spots, plot_fit) for n in range(nt)]
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                results = list(executor.map(self.process_frame, frames))
             spotst = pd.concat(results)
+            
             self.save(spotst)
         else:
             print('Spot files exist. Skipping')
@@ -48,10 +47,7 @@ class PipelineMLE2D:
         return spotst
 
     def process_frame(self, args):
-        n, framed = args
-        threshold = self.config['thresh_log']
-        plot_spots = False  # don't plot subprocesses
-        plot_fit = False   
+        n, framed, threshold, plot_spots, plot_fit = args
         print(f'Detecting in frame {n}')
         log = LoGDetector(framed, threshold=threshold)
         spots = log.detect()  # Image coordinates
@@ -62,14 +58,15 @@ class PipelineMLE2D:
         spots = spots.assign(frame=n)
         return spots
 
-    def fit(self, frame, spots, plot_fit=False):
+    def fit(self, frame, spots, plot_fit=False, max_workers=4):
         config = self.config
         patchw = config['patchw']
-        # prepare inputs for parallel processing
+        # Prepare inputs for parallel processing
         spot_indices = spots.index.tolist()
         spot_coords = spots[['x', 'y']].values.tolist()
         args = [(i, x0, y0, frame, patchw, plot_fit) for i, (x0, y0) in zip(spot_indices, spot_coords)]
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        # Parallelize fitting with a limit on max_workers
+        with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
             results = list(executor.map(self.fit_spot, args))
         for i, result in zip(spot_indices, results):
             x_mle, y_mle, N0, conv = result
